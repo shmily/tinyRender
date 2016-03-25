@@ -24,6 +24,15 @@ $(TARGET): $(COBJS)
 
 -include $(COBJS:.o=.d)
 
-.PHONY: clean
+.PHONY: clean install
+
+INSTALL_DIR = ../library/rply
+install: $(TARGET)
+	@ mkdir -p $(INSTALL_DIR)
+	@ cp $(TARGET) $(INSTALL_DIR)
+	@ cp rply.h $(INSTALL_DIR)
+	@ cp rplyfile.h $(INSTALL_DIR)
+
 clean:
-	rm -rf $(TARGET) *.o *.d *.d.*
+	@ rm -rf $(TARGET) *.o *.d *.d.*
+	@ rm -rf $(INSTALL_DIR)
