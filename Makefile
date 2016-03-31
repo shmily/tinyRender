@@ -1,34 +1,44 @@
 
 include makefile.in
 
-.PHONY: libs clean
+vpath %.cpp src
+vpath %.d   target
 
-TARGET = libmix.a
-
-all: $(TARGET)
+TARGET = tinyRender
 
 SUBDIRS = rply-1.1.4
 
-CSRCS = src/vector.c \
-        src/color.c \
-		src/mesh.c
+CSRCS = src/vector.cpp \
+        src/color.cpp  \
+		src/mesh.cpp   \
+		src/main.cpp
 
-COBJS = $(patsubst %.c,%.o,$(CSRCS))
+OBJ_PATH = target
+DEPENDS  = $(patsubst %.cpp,$(OBJ_PATH)/%.d,$(notdir $(CSRCS)))
+COBJS    = $(patsubst %.cpp,$(OBJ_PATH)/%.o,$(notdir $(CSRCS)))
 
 CFLAGS += -std=c++11
+LFLAGS = -L./library/rply -lrply
 
-$(TARGET): $(COBJS) libs
-	$(AR) -r $@ $(COBJS)
+all: $(TARGET)
 
-%.o:%.cpp
-	$(CXX) -o $@ -c $< $(CFLAGS) $(INCLUDEFLAGS)
+$(TARGET): $(COBJS)
+	@echo +++ Linking [$(notdir $@)]
+	@$(CXX) $(COBJS) -o $@ $(CFLAGS) $(LFLAGS)
 
-%.d:%.cpp
-	@set -e; rm -f $@; $(CXX) -MM $< -MT $(patsubst %.cpp,%.o,$<) $(INCLUDEFLAGS) $(CFLAGS) > $@.$$$$; \
+$(COBJS):$(OBJ_PATH)/%.o : %.cpp
+	@echo +++ Compiling [$(notdir $<)]
+	@$(CXX) -o $@ -c $< $(CFLAGS) $(INCLUDEFLAGS)
+
+$(DEPENDS):$(OBJ_PATH)/%.d : %.cpp
+	@set -e; rm -f $@; \
+	 $(CXX) -MM $< -MT $(patsubst %.cpp,$(OBJ_PATH)/%.o,$(notdir $<)) $(INCLUDEFLAGS) $(CFLAGS) > $@.$$$$; \
 	 sed 's,\($*\)\.o[ : ]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
 	 rm -f $@.$$$$
 
--include $(COBJS:.o=.d)
+-include $(DEPENDS)
+
+.PHONY: libs clean
 
 libs:
 	@ mkdir -p library
@@ -37,7 +47,9 @@ libs:
 	done
 
 clean:
-	cd src && rm -rf $(TARGET) $(COBJS) *.o *.d *.d.*
-	@ for subdir in $(SUBDIRS); do \
-		(cd $$subdir && make clean); \
-	done
+	rm -rf $(OBJ_PATH)/*
+	rm -rf $(TARGET)
+#	cd src && rm -rf $(TARGET) $(COBJS) *.o *.d *.d.*
+#	@ for subdir in $(SUBDIRS); do \
+#		(cd $$subdir && make clean); \
+#	done
