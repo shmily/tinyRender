@@ -11,6 +11,8 @@ SUBDIRS = rply-1.1.4
 CSRCS = src/vector.cpp \
         src/color.cpp  \
 		src/mesh.cpp   \
+		src/window.cpp \
+		src/canvas.cpp \
 		src/main.cpp
 
 OBJ_PATH = target
@@ -18,7 +20,8 @@ DEPENDS  = $(patsubst %.cpp,$(OBJ_PATH)/%.d,$(notdir $(CSRCS)))
 COBJS    = $(patsubst %.cpp,$(OBJ_PATH)/%.o,$(notdir $(CSRCS)))
 
 CFLAGS += -std=c++11
-LFLAGS = -L./library/rply -lrply
+LFLAGS  = -L./library/rply -lrply
+LFLAGS += -lSDLmain -lSDL
 
 all: $(TARGET)
 
